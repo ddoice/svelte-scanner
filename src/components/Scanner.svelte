@@ -10,6 +10,7 @@
   let value = 0;
   let newZoom: number | undefined;
   let facingMode: FacingMode = 'environment';
+  let torch = false;
 
   async function handleOnChange(event: any) {
     console.log(event.target.value);
@@ -18,13 +19,19 @@
     newZoom = zoom || undefined;
   }
 
+  async function handleToggleTorch() {
+    torch = !torch;
+    await tracks?.setTorch(torch);
+  }
+
   const getStream = () =>
     navigator.mediaDevices.getUserMedia({
       video: {
         facingMode,
+        width: { ideal: 1080 },
         //width: { ideal: 960 },
-        width: { ideal: 960 },
-        height: { ideal: 1280 },
+        //width: { ideal: 960 },
+        //height: { ideal: 1280 },
       },
       audio: false,
     });
@@ -76,6 +83,13 @@
     })();    
     return () => detectorStore?.stop();
   });
+
+  let settings: any;
+  let nada;
+  $: {
+    nada = $detectorStore?.scanCount;
+    settings = tracks?.getSettings();
+  }
 </script>
 
 <div class="stats">
@@ -83,6 +97,14 @@
   <div>Average: {$detectorStore.average.toFixed(2)}</div>
   <div>Fail: {$detectorStore.fail}</div>
   <div>Success: {$detectorStore.success}</div>
+  <div>exposureTime: {settings?.exposureTime}</div>
+  <div>Contrast {settings?.contrast}</div>
+  <div>exposureMode: {settings?.exposureMode}</div>
+  <div>height: {settings?.height}</div>
+  <div>width: {settings?.width}</div>
+  <div>resizeMode: {settings?.resizeMode}</div>
+  <div>saturation: {settings?.saturation}</div>
+  <div>sharpness: {settings?.sharpness}</div>
 </div>
 
 <video autoPlay id="stream" bind:this={video}> </video>
@@ -116,6 +138,21 @@
   </div>
 </div>
 
+<div id="toggles">
+  <div class="focus__group">
+    <button 
+    disabled={!tracks || !tracks.capabilities.torch}
+    on:click={handleToggleTorch}><img src={`public/torch-${torch ? 'on' : 'off'}.svg`} /></button>
+  </div>
+  <div>
+  <div class="focus__group">
+    {$detectorStore?.mode}
+    <button 
+    on:click={detectorStore?.toggleMode}><img src={`public/mode-${$detectorStore?.mode}.svg`} /></button>
+  </div>
+</div>
+</div>
+
 <!-- {#if debugVisible}
   <pre>
     {JSON.stringify(tracks.capabilities, null, 2)}
@@ -137,9 +174,10 @@
   }
 
   .stats {
-    font-size: 13px;
+    opacity: 0.5;
+    font-size: 12px;
     position: absolute;
-    bottom: 0;
+    bottom: 80px;
     right: 0;
     background: rgba(0, 0, 0, 0.2);
     color: white;
@@ -162,6 +200,20 @@
     display: flex;
     flex-direction: row;
     width: calc(100% - 16px);
+  }
+
+  #toggles {
+    font-size: 12px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    width: calc(100% - 16px);
+    justify-content: space-between;
   }
 
   .focus__group {

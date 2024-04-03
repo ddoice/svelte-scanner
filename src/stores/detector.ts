@@ -27,8 +27,8 @@ interface CreateDetectorStore {
 }
 
 export function createDetectorStore(): CreateDetectorStore {
-  const modes = ['grabFrame', 'videoCapture', 'takePhoto'];
-  let mode = 'grabFrame';
+  const modes = ['grabFrame', 'videoCapture'];
+  let mode = 'videoCapture';
   let success = 0;
   let fail = 0;
   let error = 0;
