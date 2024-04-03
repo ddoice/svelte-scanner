@@ -2,38 +2,73 @@ import { notificationStore } from '../stores/notifications';
 
 const baseApiUrl = import.meta.env.VITE_REPORT_API;
 
+const fetcher: typeof fetch = async (path, init) => {
+  const response = await fetch(`${baseApiUrl}${path}`, init);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response;
+};
+
 export const sendTrackCapabilities = async (capabilities: MediaTrackCapabilitiesExtended) => {
-  const response = await fetch(`${baseApiUrl}/log`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      device: localStorage.getItem("deviceAlias"),
-    } as any,
-    body: JSON.stringify(capabilities),
-  }).catch((error) => {
+  try {
+    const response = await fetcher(`/log`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        device: localStorage.getItem('deviceAlias'),
+        event: 'trackCapabilities',
+      } as any,
+      body: JSON.stringify(capabilities),
+    });
+    return response;
+  } catch (error: any) {
     console.error(error);
     notificationStore.addNotification({
       text: `sendTrackCapabilities failed, ` + error.message,
       type: 'error',
     });
-  });
-  return response;
-}
+  }
+};
 
 export const sendTrackSettings = async (trackSettings: MediaTrackSettings) => {
-  const response = await fetch(`${baseApiUrl}/log`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      device: localStorage.getItem("deviceAlias"),
-    } as any,
-    body: JSON.stringify(trackSettings),
-  }).catch((error) => {
+  try {
+    const response = await fetcher(`/log`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        device: localStorage.getItem('deviceAlias'),
+        event: 'trackSettings',
+      } as any,
+      body: JSON.stringify(trackSettings),
+    });
+    return response;
+  } catch (error: any) {
     console.error(error);
     notificationStore.addNotification({
-      text: 'sendTrackSettings failed, ' + error.message,
+      text: `sendTrackSettings failed, ` + error.message,
       type: 'error',
     });
-  });
-  return response;
-}
+  }
+};
+
+export const sendPhoto = async (photoFile: Blob) => {
+  const formData = new FormData();
+  formData.append('photo', photoFile);
+  try {
+    const response = await fetcher(`/upload`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        device: localStorage.getItem('deviceAlias'),
+        event: 'trackSettings',
+      } as any,
+    });
+  } catch (error: any) {
+    console.error(error);
+    notificationStore.addNotification({
+      text: `sendPhoto failed, ` + error.message,
+      type: 'error',
+    });
+  }
+};

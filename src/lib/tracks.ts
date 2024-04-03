@@ -9,6 +9,7 @@ export interface InitTrack {
   setTorch: (torch: boolean) => void;
   settings: MediaTrackSettings;
   getSettings: () => MediaTrackSettings;
+  setZoom: (zoom: number) => Promise<void>;
 }
 
 export const initTrack = (track: MediaStreamTrack): InitTrack => {
@@ -36,6 +37,12 @@ export const initTrack = (track: MediaStreamTrack): InitTrack => {
     focusMode: FocusMode
   ) => (track as any).applyConstraints({
     advanced: [{ focusMode }],
+  });
+
+  const setZoom = (
+    zoom: number
+  ) => (track as any).applyConstraints({
+    advanced: [{ zoom }],
   });
   
   const setFocusDistance = (
@@ -65,6 +72,7 @@ export const initTrack = (track: MediaStreamTrack): InitTrack => {
     setFocusDistance,
     setTorch,
     settings,
+    setZoom,
   }
 }
 
