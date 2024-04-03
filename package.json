@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "NODE_ENV=production vite build",
+    "build": "NODE_ENV=production vite build && cp -r public dist",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "npx gh-pages -d dist",

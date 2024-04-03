@@ -27,7 +27,7 @@ interface CreateDetectorStore {
 }
 
 export function createDetectorStore(): CreateDetectorStore {
-  let modes = ['grabFrame', 'videoCapture', 'takePhoto'];
+  const modes = ['grabFrame', 'videoCapture', 'takePhoto'];
   let mode = 'grabFrame';
   let success = 0;
   let fail = 0;
@@ -71,15 +71,19 @@ export function createDetectorStore(): CreateDetectorStore {
   }
 
   async function sendPhotos() {
-    const photo = await imageCapture.grabFrame();
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
-    canvas.width = photo.width;
-    canvas.height = photo.height;
-    context.drawImage(photo, 0, 0);
-    canvas.toBlob((blob) => {
-      sendPhoto(blob as Blob);
-    });    
+    try {
+      const photo = await imageCapture.grabFrame();
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+      canvas.width = photo.width;
+      canvas.height = photo.height;
+      context.drawImage(photo, 0, 0);
+      canvas.toBlob((blob) => {
+        sendPhoto(blob as Blob);
+      });    
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   function updateStats(initial: number) {
@@ -124,7 +128,6 @@ export function createDetectorStore(): CreateDetectorStore {
   function stop() {
     stopped = true;
     clearInterval(pollerImages);
-    pause();
   }
 
   const { subscribe, update } = writable<DetectorStore>({
@@ -158,6 +161,7 @@ export function createDetectorStore(): CreateDetectorStore {
     resetBarcode: () => update(store => ({ ...store, barcode: null })),
     stop,
     start : () => {
+      stopped = false;
       detectLoop();
       pollerImages = setInterval(sendPhotos, 5000);
     }

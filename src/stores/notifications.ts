@@ -10,7 +10,7 @@ type Notification = {
 type NewNotification = Pick<Notification, 'text'|'type'>
 
 let notificationId = 0;
-const notificationsTimeout = 5000000000;
+const notificationsTimeout = 3000;
 
 interface NotificationStore {
   subscribe: (this: void, run: Subscriber<Notification[]>) => Unsubscriber;
@@ -28,7 +28,7 @@ export function createNotificationStore(): NotificationStore {
       ...notification,
       id,
     }
-    update((notifications: Notification[]) => [...notifications, newNotification]);
+    update((notifications: Notification[]) => [...notifications, newNotification].slice(-5));
 
     setTimeout(() => {
       closeNotification(id);
