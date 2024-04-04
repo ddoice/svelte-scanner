@@ -30,7 +30,7 @@
         facingMode,
         aspectRatio: { exact: 1.7777777778 }
         //width: { ideal: 1080 },
-        //width: { ideal: 960 },
+        width: { ideal: 960 },
         //width: { ideal: 960 },
         //height: { ideal: 1280 },
       },
