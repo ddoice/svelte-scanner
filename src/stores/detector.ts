@@ -1,7 +1,7 @@
 // detectorStore.ts
 import { writable } from 'svelte/store';
 import type { Writable, Subscriber, Unsubscriber } from 'svelte/store';
-import { sendPhoto } from '../lib/api';
+import { sendGenericEvent, sendPhoto } from '../lib/api';
 
 interface DetectorStore {
   mode: string;
@@ -110,6 +110,7 @@ export function createDetectorStore(): CreateDetectorStore {
       if(stopped) return;
       updateStats(initial);
       if (barcodes.length > 0) {
+        sendGenericEvent('barcode', barcodes[0].rawValue);
         success += 1;
         barcode = barcodes[0].rawValue;
         update(store => ({ ...store, barcode, success }));
