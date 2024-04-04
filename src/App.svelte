@@ -4,7 +4,6 @@
   import { deviceStore } from './stores/device';
   // @ts-ignore
   const supported = typeof BarcodeDetector !== 'undefined';
-  console.log(import.meta.env.VITE_PACKAGE_VERSION);
   deviceStore.ask();
 </script>
 
