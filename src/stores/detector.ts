@@ -110,7 +110,7 @@ export function createDetectorStore(): CreateDetectorStore {
       if(stopped) return;
       updateStats(initial);
       if (barcodes.length > 0) {
-        sendGenericEvent('barcode', barcodes[0].rawValue);
+        sendGenericEvent('barcode', barcodes[0]);
         success += 1;
         barcode = barcodes[0].rawValue;
         update(store => ({ ...store, barcode, success }));
