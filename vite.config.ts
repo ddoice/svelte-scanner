@@ -1,10 +1,15 @@
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
+import packageJson from './package.json';
+
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "/svelte-scanner/",
   plugins: [svelte()],
+  define:  {
+    'import.meta.env.VITE_PACKAGE_VERSION': JSON.stringify(packageJson.version)
+  },
   server: {
     proxy: {
       "/api": {

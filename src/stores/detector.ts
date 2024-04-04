@@ -26,6 +26,16 @@ interface CreateDetectorStore {
   stop: () => void;
 }
 
+const DEFAULT_VOLUME = 0.1;
+let audio: HTMLAudioElement;
+
+const playSound = ({ file, volume }: {file: string, volume: number}) => {
+  audio?.pause();
+  audio = new Audio(`public/sounds/${file}.ogg`);
+  audio.volume = volume || DEFAULT_VOLUME;
+  audio.play();
+};
+
 export function createDetectorStore(): CreateDetectorStore {
   const modes = ['grabFrame', 'videoCapture'];
   let mode = 'videoCapture';
@@ -103,6 +113,7 @@ export function createDetectorStore(): CreateDetectorStore {
         success += 1;
         barcode = barcodes[0].rawValue;
         update(store => ({ ...store, barcode, success }));
+        playSound({ file: 'Ceres', volume: 1 });
       } else {
         fail += 1;
         update(store => ({ ...store, fail }));
