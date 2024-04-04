@@ -8,7 +8,8 @@ export default defineConfig({
   base: "/svelte-scanner/",
   plugins: [svelte()],
   define:  {
-    'import.meta.env.VITE_PACKAGE_VERSION': JSON.stringify(packageJson.version)
+    'import.meta.env.VITE_PACKAGE_VERSION': JSON.stringify(packageJson.version),
+    'import.meta.env.VITE_BUILD_DATE': JSON.stringify(new Date().toISOString())
   },
   server: {
     proxy: {

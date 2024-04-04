@@ -146,13 +146,12 @@
     disabled={!tracks || !tracks.capabilities.torch}
     on:click={handleToggleTorch}><img src={`public/torch-${torch ? 'on' : 'off'}.svg`} /></button>
   </div>
-  <div>
+  <div class="build">build {import.meta.env.VITE_BUILD_DATE}</div>
   <div class="focus__group">
     {$detectorStore?.mode}
     <button 
     on:click={detectorStore?.toggleMode}><img src={`public/mode-${$detectorStore?.mode}.svg`} /></button>
   </div>
-</div>
 </div>
 
 <!-- {#if debugVisible}
@@ -242,6 +241,11 @@
     flex-direction: row;
     width: calc(100% - 16px);
     justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .build {
+    opacity: 0.5;
   }
 
   .focus__group {
