@@ -4,6 +4,7 @@
 
   import type { InitTrack } from '../lib/tracks';
   import { createDetectorStore } from '../stores/detector';
+  import { sendGenericEvent } from '../lib/api';
 
   type FacingMode = 'environment' | 'user';
 
@@ -24,9 +25,45 @@
     await tracks?.setTorch(torch);
   }
 
-  const getStream = () =>
+  const getBestCameraAvailable = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cameras = devices.filter(({ kind }) => kind === 'videoinput');
+    sendGenericEvent('cameras', cameras);
+    console.log('cameras', cameras);
+
+    let validCameras = [];
+    for await (const camera of cameras) {
+      const deviceId = camera.deviceId;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: { exact: deviceId },
+            facingMode: { exact: 'environment' },
+          },
+          audio: false,
+        });
+        const track = stream.getTracks()[0];
+        const constraints = track.getConstraints();
+        const capabilities = track.getCapabilities();
+        stream.getTracks().forEach((track) => track.stop());
+        if(deviceId === capabilities.deviceId){
+          validCameras.push({ camera, constraints, capabilities });
+        }
+      } catch (error) {
+        console.log('error', error);
+        console.log(error);
+      }
+    }
+    validCameras.sort((a, b) => ((b?.capabilities?.width?.max || 0) * (b?.capabilities?.height?.max || 0)) - ((a?.capabilities?.width?.max || 0) * (a?.capabilities?.height?.max || 0)));
+    console.log('validCameras', validCameras);
+    sendGenericEvent('validCameras', validCameras);
+    return validCameras[0].capabilities.deviceId;
+  };
+
+  const getStream = (deviceId: string) =>
     navigator.mediaDevices.getUserMedia({
       video: {
+        deviceId: { exact: deviceId },
         facingMode,
         aspectRatio: { exact: 1.7777777778 },
         //width: { ideal: 1080 },
@@ -40,18 +77,18 @@
   let debugVisible = false;
   let video: HTMLVideoElement;
   let stream;
-  let track:any;
+  let track: any;
   let tracks: InitTrack;
   let detectorStore = createDetectorStore();
 
   const focusModes = ['continuous', 'manual'] as FocusMode[];
   let focusMode = 'continuous' as FocusMode;
 
-  const initDetection = async () => {
+  const initDetection = async (deviceId: string) => {
     try {
       track?.stop();
       detectorStore?.stop();
-      stream = await getStream();
+      stream = await getStream(deviceId);
       track = stream.getVideoTracks()[0];
       video.srcObject = stream;
       tracks = initTrack(track);
@@ -74,14 +111,16 @@
   };
 
   const toggleFacingMode = async () => {
+    const cameraId = await getBestCameraAvailable() as string;
     facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    await initDetection();
+    await initDetection(cameraId);
   };
 
   onMount(() => {
-    (async ()=>{
-      await initDetection();
-    })();    
+    (async () => {
+      const cameraId = await getBestCameraAvailable() as string;
+      await initDetection(cameraId);
+    })();
     return () => detectorStore?.stop();
   });
 
@@ -142,15 +181,16 @@
 
 <div id="toggles">
   <div class="focus__group">
-    <button 
-    disabled={!tracks || !tracks.capabilities.torch}
-    on:click={handleToggleTorch}><img src={`public/torch-${torch ? 'on' : 'off'}.svg`} /></button>
+    <button disabled={!tracks || !tracks.capabilities.torch} on:click={handleToggleTorch}
+      ><img src={`public/torch-${torch ? 'on' : 'off'}.svg`} /></button
+    >
   </div>
   <div class="build">build {import.meta.env.VITE_BUILD_DATE}</div>
   <div class="focus__group">
     {$detectorStore?.mode}
-    <button 
-    on:click={detectorStore?.toggleMode}><img src={`public/mode-${$detectorStore?.mode}.svg`} /></button>
+    <button on:click={detectorStore?.toggleMode}
+      ><img src={`public/mode-${$detectorStore?.mode}.svg`} /></button
+    >
   </div>
 </div>
 
@@ -167,7 +207,7 @@
   video {
     width: 100vw;
     height: 100%;
-    background: black;    
+    background: black;
   }
 
   .overlay {
@@ -180,18 +220,18 @@
     z-index: 1;
     /*clip-path: polygon(0% 0%, 0% 100%, 25% 100%, 25% 25%, 75% 25%, 75% 75%, 25% 75%, 25% 100%, 100% 100%, 100% 0%);*/
     clip-path: polygon(
-      0 0, /* top left corner */
-    0 100%, /* bottom left corner */
-    calc(50% - 100px) 100%, /* bottom left edge of the hole */
-    calc(50% - 100px) calc(50% - 300px), /* top left edge of the hole */
-    calc(50% + 100px) calc(50% - 300px), /* top right edge of the hole */
-    calc(50% + 100px) calc(50% + 300px), /* bottom right edge of the hole */
-    calc(50% - 100px) calc(50% + 300px), /* bottom left edge of the hole */
-    calc(50% - 100px) 100%, /* bottom left corner */
-    100% 100%, /* bottom right corner */
-    100% 0 /* top right corner */
+      0 0,
+      /* top left corner */ 0 100%,
+      /* bottom left corner */ calc(50% - 100px) 100%,
+      /* bottom left edge of the hole */ calc(50% - 100px) calc(50% - 300px),
+      /* top left edge of the hole */ calc(50% + 100px) calc(50% - 300px),
+      /* top right edge of the hole */ calc(50% + 100px) calc(50% + 300px),
+      /* bottom right edge of the hole */ calc(50% - 100px) calc(50% + 300px),
+      /* bottom left edge of the hole */ calc(50% - 100px) 100%,
+      /* bottom left corner */ 100% 100%,
+      /* bottom right corner */ 100% 0 /* top right corner */
     );
-  }  
+  }
   pre {
     text-align: left;
     font-family: monospace;
@@ -211,7 +251,6 @@
     text-align: right;
     flex-direction: column;
   }
-  
 
   #focus {
     z-index: 2;

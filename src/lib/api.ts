@@ -52,6 +52,27 @@ export const sendTrackSettings = async (trackSettings: MediaTrackSettings) => {
   }
 };
 
+export const sendGenericEvent = async (event: string, data: any) => {
+  try {
+    const response = await fetcher(`/log`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        device: localStorage.getItem('deviceAlias'),
+        event,
+      } as any,
+      body: JSON.stringify(data),
+    });
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    notificationStore.addNotification({
+      text: `Send ${event} event failed, ` + error.message,
+      type: 'error',
+    });
+  }
+}
+
 export const sendPhoto = async (photoFile: Blob) => {
   const formData = new FormData();
   formData.append('photo', photoFile);
