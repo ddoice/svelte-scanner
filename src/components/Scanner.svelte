@@ -52,8 +52,8 @@
       track?.stop();
       detectorStore?.stop();
       stream = await getStream();
-      video.srcObject = stream;
       track = stream.getVideoTracks()[0];
+      //video.srcObject = stream;
       tracks = initTrack(track);
       detectorStore.init(video, track, video.width, video.height);
       detectorStore.start();
@@ -109,6 +109,7 @@
 </div>
 
 <video autoPlay id="stream" bind:this={video}> </video>
+<div class="overlay"></div>
 
 <div id="focus">
   <div class="focus__group">
@@ -167,8 +168,31 @@
   video {
     width: 100vw;
     height: 100%;
-    background: black;
+    background: black;    
   }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    /*clip-path: polygon(0% 0%, 0% 100%, 25% 100%, 25% 25%, 75% 25%, 75% 75%, 25% 75%, 25% 100%, 100% 100%, 100% 0%);*/
+    clip-path: polygon(
+      0 0, /* top left corner */
+    0 100%, /* bottom left corner */
+    calc(50% - 100px) 100%, /* bottom left edge of the hole */
+    calc(50% - 100px) calc(50% - 300px), /* top left edge of the hole */
+    calc(50% + 100px) calc(50% - 300px), /* top right edge of the hole */
+    calc(50% + 100px) calc(50% + 300px), /* bottom right edge of the hole */
+    calc(50% - 100px) calc(50% + 300px), /* bottom left edge of the hole */
+    calc(50% - 100px) 100%, /* bottom left corner */
+    100% 100%, /* bottom right corner */
+    100% 0 /* top right corner */
+    );
+  }  
   pre {
     text-align: left;
     font-family: monospace;
@@ -188,8 +212,10 @@
     text-align: right;
     flex-direction: column;
   }
+  
 
   #focus {
+    z-index: 2;
     font-size: 12px;
     position: absolute;
     top: 0;
@@ -204,6 +230,7 @@
   }
 
   #toggles {
+    z-index: 2;
     font-size: 12px;
     position: absolute;
     bottom: 0;

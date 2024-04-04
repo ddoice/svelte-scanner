@@ -37,7 +37,7 @@ const playSound = ({ file, volume }: {file: string, volume: number}) => {
 };
 
 export function createDetectorStore(): CreateDetectorStore {
-  const modes = ['grabFrame', 'videoCapture'];
+  const modes = ['grabFrame', 'videoCapture', 'processor'];
   let mode = 'videoCapture';
   let success = 0;
   let fail = 0;
@@ -58,11 +58,100 @@ export function createDetectorStore(): CreateDetectorStore {
     imageCapture = new ImageCapture(track);
     // @ts-ignore
     barcodeDetector = new BarcodeDetector({ formats: ['pdf417'] });
+
+    if(mode === 'processor') {
+      // // @ts-ignore
+      // const trackProcessor = new MediaStreamTrackProcessor({ track });
+      // // @ts-ignore
+      // const trackGenerator = new MediaStreamTrackGenerator({ kind: "video" });
+
+    //   const transformer = new TransformStream({
+    //     async transform(videoFrame, controller) {
+    //       if (videoFrame.format === "I420") {
+    //   // Calculate the total size required for the frame
+    //   let totalSize = videoFrame.codedWidth * videoFrame.codedHeight * 3 / 2; // YUV420 format (1.5 bytes per pixel)
+
+    //   // Check if the buffer size matches the required size
+    //   if (videoFrame.buffer.byteLength < totalSize) {
+    //     console.error("Buffer size is not large enough for the I420 format.");
+    //     return;
+    //   }
+
+    //   // create a buffer to store the frame data
+    //   let buffer = new Uint8Array(totalSize);
+
+    //   // copy the frame to the buffer
+    //   let layout = await videoFrame.copyTo(buffer);
+
+    //   // Convert I420 to grayscale by only keeping the Y component and zeroing out U and V components
+    //   for (let i = videoFrame.codedWidth * videoFrame.codedHeight, l = buffer.length; i < l; i++ ) {
+    //     buffer[i] = 0; // Set U and V components to 0
+    //   }
+
+    //   // generate a new frame using the contents of the buffer and the settings from the original frame
+    //   let greyFrame = new VideoFrame(buffer, {
+    //     format: videoFrame.format,
+    //     codedWidth: videoFrame.codedWidth,
+    //     codedHeight: videoFrame.codedHeight,
+    //     timestamp: videoFrame.timestamp,
+    //     colorSpace: videoFrame.colorSpace
+    //   });
+
+    //   // close the original frame since it is no longer needed
+    //   videoFrame.close();
+
+    //   // add the newly transformed frame to the queue for the stream
+    //   controller.enqueue(greyFrame);
+    //       } else if (videoFrame.format === "NV12") {
+    //         // create a buffer to store the frame data
+    //         let buffer = new Uint8Array(videoFrame.allocationSize());
+    //         // copy the frame to the buffer
+    //         let layout = await videoFrame.copyTo(buffer);
+    //         // Remove the UV data (makes it green.);
+    //         for (var i = videoFrame.codedWidth * videoFrame.codedHeight, l = buffer.length; i < l; i++ ) {
+    //           buffer[i] = 0;
+    //         }
+    //         // generate a new frame using the contents of the buffer and the settings from the original frame
+    //         let greyFrame = new VideoFrame(buffer, {
+    //           format: videoFrame.format,
+    //           codedWidth: videoFrame.codedWidth,
+    //           codedHeight: videoFrame.codedHeight,
+    //           timestamp: videoFrame.timestamp,
+    //           colorSpace: videoFrame.colorSpace
+    //         });
+    //         // close the original frame since it is no longer needed
+    //         videoFrame.close();
+    //         //add the newly transformed frame to the queue for the stream
+    //         controller.enqueue(videoFrame);
+    //       } else {
+    //         console.error("I didn't handle this color format.");
+    //         controller.enqueue(videoFrame);
+    //       }
+    //     }
+    //   });
+
+    //   // const transformer = new TransformStream({
+    //   //   async transform(videoFrame, controller) {
+    //   //     console.log('videoFrame', videoFrame);
+    //   //     controller.enqueue(videoFrame);
+    //   //   },
+    //   // });      
+      
+    //   trackProcessor.readable
+    //     .pipeThrough(transformer)
+    //     .pipeTo(trackGenerator.writable);
+
+    //   const streamAfter = new MediaStream([trackGenerator]);
+    //   video.srcObject = streamAfter;
+      
+     }
   }
 
   async function getSource() {
     if (mode === 'grabFrame') return imageCapture.grabFrame();
     if (mode === 'videoCapture') return video;
+    if (mode === 'processor') return video;
+    //if(mode === 'processor') return await processFrame();
     if (mode === 'takePhoto') {
       const imageBlob = await imageCapture.takePhoto();
       const imagen = new Image();
@@ -76,8 +165,7 @@ export function createDetectorStore(): CreateDetectorStore {
 
   async function detect() {
     const source = await getSource();
-    const results = await barcodeDetector.detect(source);
-    return results;
+    return barcodeDetector.detect(source);
   }
 
   async function sendPhotos() {
@@ -104,6 +192,9 @@ export function createDetectorStore(): CreateDetectorStore {
   }
 
   async function detectLoop() {
+    // if(mode === 'processor') {
+    //   return;
+    // }
     try {
       const initial = Date.now();
       const barcodes = await detect();
