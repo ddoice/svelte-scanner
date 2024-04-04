@@ -53,7 +53,7 @@
       detectorStore?.stop();
       stream = await getStream();
       track = stream.getVideoTracks()[0];
-      //video.srcObject = stream;
+      video.srcObject = stream;
       tracks = initTrack(track);
       detectorStore.init(video, track, video.width, video.height);
       detectorStore.start();
