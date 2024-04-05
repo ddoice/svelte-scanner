@@ -20,6 +20,7 @@ interface ValidCamera {
     camera: MediaDeviceInfo;
     constraints: MediaTrackConstraints;
     capabilities: MediaTrackCapabilities;
+    photoCapabilities: any;
     hash: string;
 };
 
@@ -34,19 +35,23 @@ const getAvailableCameras = async (): Promise<ValidCamera[]> => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           deviceId: { exact: deviceId },
-          facingMode: { exact: 'environment' },
+          //facingMode: { exact: 'environment' },
         },
         audio: false,
       });
       const track = stream.getTracks()[0];
       const constraints = track.getConstraints();
       const capabilities = track.getCapabilities();
+      // @ts-ignore
+      const imageCapture = new ImageCapture(track)
+      const photoCapabilities = await imageCapture.getPhotoCapabilities();
       stream.getTracks().forEach((track) => track.stop());
       if (deviceId === capabilities.deviceId) {
         validCameras.push({
           camera,
           constraints,
           capabilities,
+          photoCapabilities,
           hash: await hashCapabilities(capabilities) 
         });
       }
@@ -54,6 +59,7 @@ const getAvailableCameras = async (): Promise<ValidCamera[]> => {
       console.log(error);
     }
   }
+  console.log('validCameras', validCameras);
   sendGenericEvent('validCameras', validCameras);
   //return validCameras.length === 1 ? [validCameras[0], validCameras[0]]: validCameras
   return validCameras;
