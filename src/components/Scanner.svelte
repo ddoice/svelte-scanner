@@ -42,7 +42,7 @@
     }
 
     console.log('constraints', constraints);
-    //sendGenericEvent('getStream constraints', constraints);
+    sendGenericEvent('getStream constraints', constraints);
   
     return navigator.mediaDevices.getUserMedia(constraints);
   }
