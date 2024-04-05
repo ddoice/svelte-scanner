@@ -21,8 +21,6 @@
     newZoom = zoom || undefined;
   }
 
-
-
   async function handleToggleTorch() {
     torch = !torch;
     await tracks?.setTorch(torch);
