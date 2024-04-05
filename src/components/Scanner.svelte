@@ -41,7 +41,8 @@
       audio: false,
     }
 
-    sendGenericEvent('getStream constraints', constraints);
+    console.log('constraints', constraints);
+    //sendGenericEvent('getStream constraints', constraints);
   
     return navigator.mediaDevices.getUserMedia(constraints);
   }
@@ -65,6 +66,7 @@
   let focusMode = 'continuous' as FocusMode;
 
   const initDetection = async (cameraHash?: string) => {
+    console.log('cameraHash', cameraHash);
     try {
       track?.stop();
       detectorStore?.stop();
@@ -72,11 +74,13 @@
       if(cameraHash) {
         const cameras = await cameraStore.getAvailableCameras();
         const found = cameras.find((camera) => camera.hash === cameraHash);
+        console.log('found', found);
         if(!found) {
           alert('Camera not found');
           return;
         }
-        deviceId = (found as any).deviceId;
+        deviceId = (found as any).camera.deviceId;
+        console.log('deviceId', deviceId);
       } 
       stream = await getStream(deviceId);
       track = stream.getVideoTracks()[0];
