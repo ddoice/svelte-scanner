@@ -28,8 +28,9 @@
     await tracks?.setTorch(torch);
   }
 
-  const getStream = (deviceId?: string) =>
-    navigator.mediaDevices.getUserMedia({
+  const getStream = (deviceId?: string) => {
+
+    const constraints = {
       video: {
         ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
         facingMode,
@@ -40,7 +41,12 @@
         //height: { ideal: 1280 },
       },
       audio: false,
-    });
+    }
+
+    sendGenericEvent('getStream constraints', constraints);
+  
+    return navigator.mediaDevices.getUserMedia(constraints);
+  }
 
   let debugVisible = false;
   let video: HTMLVideoElement;
